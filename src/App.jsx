@@ -5,11 +5,12 @@ function Timer({ title }) {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState(null);
+  const [pausedTime, setPausedTime] = useState(0); // Store elapsed time on pause
 
   useEffect(() => {
     let interval;
     if (isRunning) {
-      const start = startTime || Date.now() - time;
+      const start = Date.now() - pausedTime; // Resume from paused time
       setStartTime(start);
 
       interval = setInterval(() => {
@@ -19,7 +20,7 @@ function Timer({ title }) {
       clearInterval(interval);
     }
     return () => clearInterval(interval);
-  }, [isRunning, startTime]);
+  }, [isRunning]);
 
   const formatTime = (ms) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -30,22 +31,28 @@ function Timer({ title }) {
     return `${hrs}:${mins}:${secs}.${milli}`;
   };
 
+  const handlePauseResume = () => {
+    if (isRunning) {
+      setPausedTime(time); // Save current elapsed time
+    }
+    setIsRunning(!isRunning); // Toggle running state
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setTime(0);
+    setPausedTime(0);
+    setStartTime(null);
+  };
+
   return (
     <div className="timer-container">
       <h2>{title}</h2>
       <div className="timer">{formatTime(time)}</div>
       <div className="buttons">
         <button onClick={() => setIsRunning(true)}>Play</button>
-        <button onClick={() => setIsRunning(false)}>Pause</button>
-        <button
-          onClick={() => {
-            setIsRunning(false);
-            setTime(0);
-            setStartTime(null);
-          }}
-        >
-          Reset
-        </button>
+        <button onClick={handlePauseResume}>{isRunning ? "Pause" : "Resume"}</button>
+        <button onClick={handleReset}>Reset</button>
       </div>
     </div>
   );
